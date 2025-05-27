@@ -1,5 +1,9 @@
+import 'package:fitness_app/services/setting_api.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../models/dashboard_model.dart';
+import '../../../services/dashboard_api.dart';
 import '../../widgets/bottom_nav_bar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -10,9 +14,31 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  DateTime selectedDate = DateTime.parse("2025-07-08");
-  bool isRunningChecked = true;
-  bool isAerobicsChecked = false;
+  DateTime selectedDate = DateTime.now();
+  DashboardData? dashboardData;
+  bool isLoading = true;
+  List<DashboardExercise> exercises = [];
+  String userName = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboardData();
+    _fetchUserInfo();
+  }
+
+  Future<void> _fetchUserInfo() async {
+    try {
+      final info = await SettingApi.getInformationUser();
+      if (info.isNotEmpty) {
+        setState(() {
+          userName = info['name'] ?? '';
+        });
+      }
+    } catch (e) {
+      print("Error fetching user info: $e");
+    }
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -22,51 +48,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
       lastDate: DateTime(2100),
     );
     if (picked != null && picked != selectedDate) {
+      setState(() => selectedDate = picked);
+      await _fetchDashboardData();
+    }
+  }
+
+  Future<void> _fetchDashboardData() async {
+    setState(() => isLoading = true);
+    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+    try {
+      final data = await DashboardApi.getDiary(dateStr);
+      final exerciseRawList = await DashboardApi.getExercisesByDate(dateStr);
+      final exerciseParsed =
+          exerciseRawList.map((e) => DashboardExercise.fromJson(e)).toList();
+
       setState(() {
-        selectedDate = picked;
+        dashboardData = data ?? DashboardData.empty();
+        exercises = exerciseParsed;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error loading dashboard: $e");
+      setState(() {
+        dashboardData = DashboardData.empty();
+        exercises = [];
+        isLoading = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width - 32;
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildDashboardContent(),
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
+    );
+  }
+
+  Widget _buildDashboardContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage('https://via.placeholder.com/40'),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Hello John 👋",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundImage: AssetImage(
+                      'assets/Ellipse 14.png',
+                    ), // ✅ Đây là ImageProvider
                   ),
-                  Row(
+
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('EEEE, dd MMMM').format(selectedDate),
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: Icon(
-                          Icons.calendar_today_outlined,
-                          size: 20,
+                        "Hello " +
+                            (userName.isNotEmpty ? userName : '...') +
+                            "!",
+                        style: const TextStyle(
+                          fontSize: 14,
                           color: Colors.grey,
                         ),
                       ),
@@ -74,258 +126,268 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    flex: 2,
-                    child: Container(
-                      height: 285,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFF8F8F8),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: CircularProgressIndicator(
-                                  value: 20 / 160,
-                                  strokeWidth: 8,
-                                  backgroundColor: Colors.red.withOpacity(0.2),
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                                ),
-                              ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "20/160",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    "Minutes",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 45),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.timer_outlined, size: 18, color: Colors.red),
-                              SizedBox(width: 4),
-                              Text(
-                                "Workout time",
-                                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                  Text(
+                    DateFormat('EEEE, dd MMMM').format(selectedDate),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(width: 36),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(12),
-                          margin: EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF8F8F8),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                "174",
-                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                              Text("Kcal"),
-                              SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.local_fire_department_outlined, size: 16, color: Colors.orange),
-                                  SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      "Calories burned",
-                                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF8F8F8),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(Icons.check_circle_outline, size: 40, color: Colors.green),
-                              SizedBox(height: 8),
-                              Text(
-                                "Completion",
-                                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                              ),
-                              Text("2/4"),
-                            ],
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _selectDate(context),
+                    child: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 20,
+                      color: Colors.grey,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 301,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F8F8),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 6),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(
+                              value: (dashboardData?.timeCompletion ?? 0) / 160,
+                              strokeWidth: 8,
+                              backgroundColor: Colors.red.withOpacity(0.2),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.red,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                "${dashboardData?.timeCompletion ?? 0}/160",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                "Minutes",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/timer.png',
+                            width: 18,
+                            height: 18,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            "Workout time",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "My exercises",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    _buildInfoCard(
+                      icon: 'assets/weight.png',
+                      label: "Calories burned",
+                      value: dashboardData?.totalCaloriesBurned ?? '0',
                     ),
-                    SizedBox(height: 8),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.pink[50],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              "Name",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              textAlign: TextAlign.left,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Time (minutes)",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Calories burned",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Status",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text("Running", style: TextStyle(fontSize: 12))),
-                          Expanded(child: Text("60", style: TextStyle(fontSize: 12), textAlign: TextAlign.center)),
-                          Expanded(child: Text("104", style: TextStyle(fontSize: 12), textAlign: TextAlign.center)),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isRunningChecked = !isRunningChecked;
-                                });
-                              },
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: isRunningChecked
-                                    ? Icon(Icons.check, color: Colors.red, size: 16)
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text("Aerobics", style: TextStyle(fontSize: 12))),
-                          Expanded(child: Text("100", style: TextStyle(fontSize: 12), textAlign: TextAlign.center)),
-                          Expanded(child: Text("70", style: TextStyle(fontSize: 12), textAlign: TextAlign.center)),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isAerobicsChecked = !isAerobicsChecked;
-                                });
-                              },
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: isAerobicsChecked
-                                    ? Icon(Icons.check, color: Colors.red, size: 16)
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      icon: 'assets/clipboard-tick.png',
+                      label: "Completion",
+                      value:
+                          "${dashboardData?.exerciseCompletion ?? 0}/${dashboardData?.totalExercise ?? 0} Exercises",
                     ),
                   ],
                 ),
               ),
             ],
           ),
-        ),
+
+          // Exercise Table
+          const SizedBox(height: 24),
+          const Text(
+            "My exercises",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.pink[50],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: const [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "Name",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    "Time",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    "Calories",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    "Status",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...exercises.map((e) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey, width: 0.5),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(flex: 2, child: Text(e.name)),
+                  Expanded(
+                    child: Text("${e.time}", textAlign: TextAlign.center),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "${e.caloriesBurned}",
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(4),
+                          color:
+                              e.status == "completed"
+                                  ? Colors.red
+                                  : Colors.transparent,
+                        ),
+                        child:
+                            e.status == "completed"
+                                ? const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.white,
+                                )
+                                : null,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ],
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
+
+  Widget _buildInfoCard({
+    required String icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      height: 145,
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F8F8),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(icon, width: 20, height: 20),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Update model for fallback support
+extension DashboardDataFallback on DashboardData {
+  static DashboardData empty() => DashboardData(
+    diaryId: 0,
+    userId: 0,
+    date: "",
+    totalTime: 0,
+    exerciseCompletion: 0,
+    totalCaloriesBurned: "0",
+    timeCompletion: 0,
+    totalExercise: 0,
+  );
 }
