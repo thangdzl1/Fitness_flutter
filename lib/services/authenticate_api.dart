@@ -39,7 +39,8 @@ class AuthenticateApi {
 
   static Future<String?> signup({
     required String email,
-    required String password,}) async {
+    required String password,
+    required String name,}) async {
     try {
       final response = await http.post(
         Uri.parse('${baseUrl}api/users/register'), // Adjust this if needed
@@ -47,6 +48,7 @@ class AuthenticateApi {
         body: jsonEncode({
           'email': email,
           'password': password,
+          'name': name
         }),
       );
 

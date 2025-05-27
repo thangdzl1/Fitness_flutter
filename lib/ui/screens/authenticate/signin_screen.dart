@@ -21,6 +21,7 @@ class _SigninScreen extends State<SigninScreen> {
   bool _isLogin = false; // Boolean to toggle between login and create account
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   void _toggleAuthMode() {
     setState(() {
@@ -75,6 +76,26 @@ class _SigninScreen extends State<SigninScreen> {
               ),
               const SizedBox(height: 50),
               // space before input fields
+              if (!_isLogin) // Show only in signup mode
+                Column(
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        labelStyle: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -288,6 +309,7 @@ class _SigninScreen extends State<SigninScreen> {
   Future<void> _signupForm() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
+    final name = nameController.text.trim();
 
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
@@ -308,10 +330,10 @@ class _SigninScreen extends State<SigninScreen> {
         ),
       );
     }
-    if (email.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Email and password cannot be empty'),
+          content: Text('Name, Email and password cannot be empty'),
           backgroundColor: Colors.red,
         ),
       );
@@ -321,6 +343,7 @@ class _SigninScreen extends State<SigninScreen> {
       String? response = await AuthenticateApi.signup(
         email: email,
         password: password,
+        name: name,
       );
       if (response != null) {
         print('Signup success: $response');
