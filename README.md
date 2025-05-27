@@ -27,8 +27,8 @@ A modern **Flutter-based fitness tracking application** that helps users monitor
 git clone https://github.com/your-username/fitness_app.git
 cd fitness_app
 
-2.Install dependencies:
+2. Install dependencies:
 flutter pub get
 
-3.Run the app:
+3. Run the app:
 flutter run
