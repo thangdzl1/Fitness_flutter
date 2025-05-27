@@ -56,7 +56,7 @@ class BottomNavBar extends StatelessWidget {
       case '/':
         return const DashboardScreen(); // Đảm bảo rằng DashboardScreen được import chính xác
       case '/my-exercise':
-        return const MyMealScreen(); // Đảm bảo rằng MyMealScreen được import chính xác
+        return const MyExerciseScreen();
       case '/settings':
         return const SettingsScreen(); // Đảm bảo rằng SettingsScreen được import chính xác
       default:

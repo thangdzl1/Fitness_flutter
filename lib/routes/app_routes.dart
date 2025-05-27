@@ -13,7 +13,7 @@ class AppRoutes {
 
   static final routes = {
     dashboard: (context) => const DashboardScreen(),
-    myMeal: (context) => const MyMealScreen(),
+    myMeal: (context) => const MyExerciseScreen(),
     settings: (context) => const SettingsScreen(),
     account: (context) => const AccountScreen(),
   };
