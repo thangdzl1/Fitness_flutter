@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../widgets/bottom_nav_bar.dart';
 import 'package:fitness_app/routes/app_routes.dart';
-import '../../widgets/bottom_nav_bar.dart'; // Thêm dòng này nếu chưa import
-
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  Future<void> _dropToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwtToken');
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,15 +24,17 @@ class SettingsScreen extends StatelessWidget {
               Navigator.pushNamed(context, AppRoutes.account);
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text("Log out"),
-            onTap: () {},
+            onTap: () {
+              _dropToken();
+              Navigator.pushNamed(context, AppRoutes.authenticate);
+            },
           ),
         ],
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2), // 👈 Thêm dòng này
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );
   }
 }
