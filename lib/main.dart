@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Fitness Dashboard',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: AppRoutes.authenticate,
       routes: AppRoutes.routes,
     );
   }
