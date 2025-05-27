@@ -29,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
             title: const Text("Log out"),
             onTap: () {
               _dropToken();
-              //navigate signin screen
+              Navigator.pushNamed(context, AppRoutes.authenticate);
             },
           ),
         ],
