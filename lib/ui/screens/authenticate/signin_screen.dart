@@ -6,7 +6,6 @@ import 'package:fitness_app/ui/screens/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SigninScreen extends StatefulWidget {
