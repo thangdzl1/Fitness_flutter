@@ -47,7 +47,6 @@ class MyExerciseApi {
     );
     return jsonDecode(response.body);
   }
-
   static Future<Map<String, dynamic>> updateExercise({
     required int exerciseID,
     required String status,
@@ -78,5 +77,4 @@ class MyExerciseApi {
     print('API Raw Body: ${response.body}');
     return jsonDecode(response.body);
   }
-
 }

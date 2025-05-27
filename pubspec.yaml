@@ -57,7 +57,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+    - .env
+    - assets/kettlebell.png
+    - assets/clipboard-tick.png
+    - assets/timer.png
+    - assets/weight.png
+    - assets/Ellipse 14.png
+    - assets/google_icons.webp
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
