@@ -23,6 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchDashboardData();
     _fetchUserInfo();
   }
   Future<void> _fetchUserInfo() async {
@@ -46,8 +47,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     if (picked != null && picked != selectedDate) {
       setState(() => selectedDate = picked);
+      await _fetchDashboardData();
     }
   }
+
+  Future<void> _fetchDashboardData() async {
+    setState(() => isLoading = true);
+    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+    try {
+      final data = await DashboardApi.getDiary(dateStr);
+      final exerciseRawList = await DashboardApi.getExercisesByDate(dateStr);
+      final exerciseParsed = exerciseRawList.map((e) => DashboardExercise.fromJson(e)).toList();
+
+      setState(() {
+        dashboardData = data ?? DashboardData.empty();
+        exercises = exerciseParsed;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error loading dashboard: $e");
+      setState(() {
+        dashboardData = DashboardData.empty();
+        exercises = [];
+        isLoading = false;
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -272,4 +298,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+}
+
+// Update model for fallback support
+extension DashboardDataFallback on DashboardData {
+  static DashboardData empty() => DashboardData(
+    diaryId: 0,
+    userId: 0,
+    date: "",
+    totalTime: 0,
+    exerciseCompletion: 0,
+    totalCaloriesBurned: "0",
+    timeCompletion: 0,
+    totalExercise: 0,
+  );
 }
