@@ -70,4 +70,11 @@ class MyExerciseApi {
       body: {'date': date},
     );
   }
+
+  static Future<List<dynamic>> getAllExercise() async {
+    final response = await _client.get('api/exercises/allExercise');
+    print('API Status Code: ${response.statusCode}');
+    print('API Raw Body: ${response.body}');
+    return jsonDecode(response.body);
+  }
 }
