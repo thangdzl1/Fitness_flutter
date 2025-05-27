@@ -1,14 +1,13 @@
-import 'package:fitness_app/ui/screens/authenticate/check_your_email_screen.dart';
 import 'package:flutter/material.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class CheckYourEmailScreen extends StatefulWidget {
+  const CheckYourEmailScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreen();
+  State<CheckYourEmailScreen> createState() => _CheckYourEmailScreen();
 }
 
-class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
+class _CheckYourEmailScreen extends State<CheckYourEmailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,28 +26,19 @@ class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Forgot password",
+                "Check Your Email",
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
-                "Enter the email you used to create your account so"
-                " we can send you instructions on how to reset your password.",
+                "We have sent an email with password reset information to n****e@e***e.com.",
                 style: TextStyle(fontSize: 15),
               ),
               const SizedBox(height: 30), // space before input fields
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+              const Text(
+                "Didn’t receive the email? Check spam or promotion folder "
+                "or tap resend email",
+                style: TextStyle(fontSize: 15),
               ),
             ],
           ),
@@ -62,12 +52,12 @@ class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
           height: 50,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CheckYourEmailScreen(),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => const OnBoardGoalScreen(),
+              //   ),
+              // );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFE16449),
@@ -76,7 +66,7 @@ class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
               ),
             ),
             child: const Text(
-              'Continue',
+              'Resend email',
               style: TextStyle(
                 fontWeight: FontWeight.w600, // semi-bold text
                 fontSize: 14,
