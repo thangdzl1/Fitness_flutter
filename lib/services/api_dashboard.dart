@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/dashboard_data.dart';
+import '../models/dashboard_model.dart';
 
 class ApiDashboardService {
   static const String _baseUrl = 'http://172.30.157.246:3000';
