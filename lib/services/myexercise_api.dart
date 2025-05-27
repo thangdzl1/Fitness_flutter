@@ -47,5 +47,27 @@ class MyExerciseApi {
     );
     return jsonDecode(response.body);
   }
+  static Future<Map<String, dynamic>> updateExercise({
+    required int exerciseID,
+    required String status,
+    required String date,
+    required int weight,
+    required int time,
+  }) async {
+    final response = await _client.put(
+      'api/exercises/$exerciseID',
+      body: {'date': date, 'status': status, 'weight': weight, 'time': time},
+    );
+    return jsonDecode(response.body);
+  }
 
+  static Future<void> deleteExercise({
+    required int exerciseID,
+    required String date,
+  }) async {
+    await _client.delete(
+      'api/exercises/$exerciseID',
+      body: {'date': date},
+    );
+  }
 }
